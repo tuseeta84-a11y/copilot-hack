@@ -1,0 +1,22 @@
+name: Build Nectarine VST3
+on:
+  workflow_dispatch:
+  push:
+    paths: ['Nectarine/**', '.github/workflows/nectarine-vst3.yml']
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure
+        run: cmake -S Nectarine -B build -DCMAKE_BUILD_TYPE=Release ${{ matrix.os == 'macos-latest' && '-DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"' || '' }}
+      - name: Build
+        run: cmake --build build --target NectarLike_VST3 --config Release --parallel 4
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Nectarine-VST3-${{ matrix.os }}
+          path: build/NectarLike_artefacts/Release/VST3/Nectarine.vst3
